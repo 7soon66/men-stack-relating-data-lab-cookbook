@@ -1,0 +1,23 @@
+<title>Add New Recipe</title>
+</head>
+<body>
+  <h1>Add New Recipe</h1>
+  <form action="/recipes" method="POST">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="instructions">Instructions:</label>
+    <textarea id="instructions" name="instructions" required></textarea>
+
+    <label for="ingredients">Ingredients:</label>
+<select multiple name="ingredients" id="ingredients">
+  <% ingredients.forEach(ingredient => { %>
+    <option value="<%= ingredient._id %>"><%= ingredient.name %></option>
+  <% }) %>
+</select>
+<input type="text" name="newIngredient" placeholder="Add a new ingredient">
+
+
+    <button type="submit">Create Recipe</button>
+  </form>
+</body>
