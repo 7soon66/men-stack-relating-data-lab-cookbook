@@ -13,7 +13,7 @@ const Recipe = require('../models/recipe.js');
 router.get('/', async (req, res) => {
   try {
     const recipes = await Recipe.find({ owner: req.session.user._id });
-    res.render('recipes/index', { recipes });
+    res.render('recipes/index.ejs', { recipes });
   } catch (error) {
     console.error(error);
     res.redirect('/');
@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/new', (req, res) => {
-  res.render('recipes/new');
+  res.render('recipes/new.ejs');
 });
 
 router.post('/', async (req, res) => {
@@ -41,16 +41,30 @@ router.post('/', async (req, res) => {
 
 router.get('/:recipeId', async (req, res) => {
   try {
-      const recipe = await Recipe.findById(req.params.recipeId);
-      // Ensure the recipe belongs to the current user
-      if (!recipe || recipe.user.toString() !== req.user._id.toString()) {
-          return res.status(404).send('Recipe not found');
-      }
-      res.locals.recipe = recipe;
-      res.render('recipes/show');
+    const recipe = await Recipe.findById(req.params.recipeId).populate('ingredients'); // Populate ingredients for display
+    // Ensure the recipe belongs to the current user
+    if (!recipe || recipe.user.toString() !== req.user._id.toString()) {
+      return res.status(404).send('Recipe not found');
+    }
+    res.locals.recipe = recipe;
+    res.render('recipes/show.ejs');
   } catch (err) {
-      console.error(err);
-      res.redirect('/');
+    console.error(err);
+    res.redirect('/');
+  }
+});
+
+router.get('/:recipeId/edit', async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.recipeId).populate('ingredients'); 
+    if (!recipe || recipe.user.toString() !== req.user._id.toString()) {
+      return res.status(404).send("Recipe not found");
+    }
+    res.locals.recipe = recipe;
+    res.render("recipes/edit");
+  } catch (err) {
+    console.error(err);
+    res.redirect("/");
   }
 });
 
@@ -69,19 +83,7 @@ router.delete('/:recipeId', async (req, res) => {
   }
 });
 
-router.get("/:recipeId/edit", async (req,res)=>{
-  try{
-    const recipes =await  Recipe.findById(req.params.recipeId)
-    if(!recipe || recipe.user.toString() !==req.user._id.toString()){
-      return res.status(404).send("Recipe not found")
-    }
-    res.locals.recipe = recipes
-    res.render("recipes/edit")
-  }catch(err){
-console.log(err)
-res.redirect("/")
-  }
-})
+
 
 router.put("/:recipeId",async (req,res)=>{
   try{
@@ -95,7 +97,7 @@ router.put("/:recipeId",async (req,res)=>{
     recipe.instructions = req.body.instructions
 
     await recipe.save()
-    res.redirect(`/recipies/${recipe._id}`)
+    res.redirect(`/recipes/${recipe._id}`)
 
   }catch(err){
     console.log(err)

@@ -1,64 +1,73 @@
-const dotenv=require("dotenv")
+const dotenv = require('dotenv')
 dotenv.config()
-const express=require("express")
-const session=require("express-session")
-const app=express()
-const mongoose=require("mongoose")
-const passUserToView = require("./middleware/pass-user-to-view.js");
-const isSignedIn=require("./middleware/is-sign-in.js")
-const methodOverride=require("method-override")
-const morgan=require("morgan")
-const recipesController = require('./controllers/recipies.js');
-const ingredientsController = require('./controllers/inegrediants.js');
-//port configuration
+const express= require('express')
+const session = require("express-session")
+const passUsertoView= require("./middleware/pass-user-to-view")
+const app = express ();
 
-const PORT=process.env.PORT ? process.env.PORT:3000
+const mongoose = require('mongoose')
+const methodOverride = require('method-override')
+const morgan = require('morgan')
 
-//data connection
 
+// port config
+const PORT = process.env.PORT ? process.env.PORT: 3000
+
+// Data connection 
 mongoose.connect(process.env.MONGODB_URI)
+mongoose.connection.on("connected", () => {
 
-mongoose.connection.on("connected",()=>{
-
-  console.log(`Connected to MongoDB Database:${mongoose.connection.name}.`)
+  console.log(`connected to mongoDB database: ${mongoose.connection.name}`)
 })
 
-//Middlewares
 
-app.use(express.urlencoded({extended:false}))
+// Middleware 
+app.use(express.urlencoded({extended: false}))
 app.use(methodOverride("_method"))
-app.use(morgan("dev"))
+app.use(morgan('dev'))
 app.use(session({
-  secret:process.env.SESSION_SECRET,
-  resave:false,
+  secret: process.env.SESSION_SECRET,
+  resave: false ,
   saveUninitialized:true
 }))
+app.use(passUsertoView);
 
-app.use(passUserToView)
 
-//Require Controller
+// Require controllers 
+const authCtrl = require("./controllers/auth")
+const recipiesController = require('./controllers/recipes.js');
+const ingredientsController = require('./controllers/inegrediants.js')
+const isSignedIn = require('./middleware/is-sign-in')
 
-const authCtrl=require("./controllers/auth")
+// use controller 
+app.use("/auth", authCtrl)
+app.use('/recipes', recipiesController);
+app.use('/ingredients', ingredientsController);
+app.use(isSignedIn);
+app.use(passUsertoView);
 
-//use Controller
-app.use("/auth" , authCtrl)
-app.use('/recipies', recipesController);
-app.use('/inegrediants', ingredientsController);
 
-//route route
 
-app.get("/",async (req,res)=>{
-  res.render("index.ejs")
+
+
+//root route
+app.get('/', async (req, res) => {
+  res.render('index.ejs')
+})
+
+//Route for testing 
+//VIP lounge
+app.get('/vip-lounge',isSignedIn,  (req, res) => {
+  res.send(`Welcome to the party ${req.session.user.username}`)
+})
+
+//Listen for HTTP requests
+app.listen(PORT, () => {
+  console.log(`Auth app is listening for requests on port ${PORT}`)
 })
 
 
-// Rote for testing
-//vip-lounge
 
-// app.get("/vip-lounge",isSignedIn,(req,res)=>{
-//   res.send(`Welcome to our party ${req.session.user.username}`)
-// })
 
-app.listen(PORT,()=>{
-  console.log(`i'am on route ${PORT}`)
-})
+
+

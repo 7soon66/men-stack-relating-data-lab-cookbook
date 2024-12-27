@@ -1,3 +1,20 @@
-<h1><%= recipe.title %></h1>
-<p><strong>Ingredients:</strong> <%= recipe.ingredients %></p>
-<p><strong>Instructions:</strong> <%= recipe.instructions %></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= recipe.name %> Recipe</title>
+</head>
+<body>
+  <h1><%= recipe.name %></h1>
+  <p>Instructions:</p>
+  <p><%= recipe.instructions %></p>
+
+  <form action="/recipes/<%= recipe._id %>/edit" method="GET">
+    <button type="submit">Edit Recipe</button>
+  </form>
+  <form action="/recipes/<%= recipe._id %>?_method=DELETE" method="POST">
+    <button type="submit">Delete Recipe</button>
+  </form>
+</body>
+</html>
